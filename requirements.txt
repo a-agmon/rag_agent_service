@@ -1,0 +1,7 @@
+langchain>=0.1.6
+langgraph>=0.0.30
+polars>=0.20.9
+dfembed  # adjust to your package name
+langchain-ollama
+uvicorn
+fastapi

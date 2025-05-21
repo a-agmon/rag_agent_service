@@ -1,6 +1,26 @@
-# SelfRAG – LangGraph Retrieval-Augmented Generation
+# Agentic RAG Microservice Example with LangGraph
 
-Minimal reference implementation of the *Self-RAG* loop:
+This repository demonstrates how to build an **agentic microservice** for Retrieval-Augmented Generation (RAG) using [LangGraph](https://github.com/langchain-ai/langgraph). The service combines autonomous agent reasoning with retrieval and generation, providing a robust pattern for building intelligent, self-improving APIs.
+
+---
+
+## What is an Agentic RAG Microservice?
+
+An **agentic microservice** is a self-contained service that embeds an intelligent agent capable of:
+
+- Understanding and enhancing user queries
+- Retrieving relevant context from a knowledge base or vector database
+- Generating answers using a language model
+- Assessing the quality or groundedness of its own answers
+- Iteratively refining its process until a satisfactory, grounded answer is produced
+
+This pattern goes beyond traditional microservices by enabling adaptive, multi-step reasoning and self-correction within a single API endpoint.
+
+---
+
+## How This Example Works
+
+This repo implements an agentic RAG microservice as a FastAPI application with a `/trigger` endpoint. The workflow is orchestrated by LangGraph and consists of the following loop:
 
 ```
 ┌─► enhance_query ─► retrieve ─► generate_answer ─► ground_check ─┐
@@ -8,68 +28,49 @@ Minimal reference implementation of the *Self-RAG* loop:
 └────────── repeat while ground_check == "NOT GROUNDED" ─────────┘
 ```
 
----
+**Key components:**
+- **Query Enhancement:** Improves the user's question for better retrieval.
+- **Retriever:** Finds relevant context from a vector database (custom `DfEmbedder`).
+- **Generator:** Uses a local language model (Ollama `qwen3:8b` by default) to answer.
+- **Grounding Check:** Verifies if the answer is well-supported by retrieved evidence.
+- **Self-Improvement Loop:** If not grounded, the agent refines its process and tries again.
 
-## What is an Agentic Microservice?
-
-An **agentic microservice** is a self-contained service that encapsulates an autonomous agent capable of reasoning, decision-making, and acting within a defined workflow. Unlike traditional microservices, which typically expose static endpoints for CRUD operations or business logic, agentic microservices embed an intelligent agent that can:
-
-- Perceive and process complex inputs (e.g., natural language queries)
-- Plan and execute multi-step reasoning or actions
-- Adapt its behavior based on feedback or intermediate results
-- Interact with external tools, databases, or APIs as part of its workflow
-
-### How This Project Implements an Agentic Microservice
-
-In this repository, the agentic microservice is realized as a FastAPI application that exposes a `/trigger` endpoint. When a request is received, the service:
-
-1. **Enhances the input query** for better retrieval.
-2. **Retrieves relevant context** from a vector database.
-3. **Generates an answer** using a local language model.
-4. **Checks if the answer is grounded** in retrieved evidence.
-5. **Repeats the loop** if the answer is not sufficiently grounded, refining the query and context.
-
-This loop is orchestrated using [LangGraph](https://github.com/langchain-ai/langgraph), and each step is modularized as a node (see the `nodes/` directory).
-
-**Diagram:**
-```
-User Query ─► [Agentic Microservice]
-                 │
-                 ▼
-      ┌─► enhance_query ─► retrieve ─► generate_answer ─► ground_check ─┐
-      |                                                                |
-      └────────── repeat while ground_check == "NOT GROUNDED" ─────────┘
-                 │
-                 ▼
-              Answer
-```
-
-* **Language model:** local Ollama `qwen3:8b` (change in `selfrag/config.py`).
-* **Vector DB:** custom `DfEmbedder` backed by the `tmdb_db` folder (built from `tmdb.csv` on first run).
-* **Frameworks:** [LangChain](https://github.com/langchain-ai/langchain), [LangGraph](https://github.com/langchain-ai/langgraph).
-
-## Quick start
-
-```bash
-pip install -r requirements.txt           # install deps (see pyproject.toml for poetry)
-export OLLAMA_HOST=http://localhost:11434 # adjust if needed
-python examples/demo_cli.py
-```
+**Directory structure:**
+- `selfrag/config.py` – Central configuration for models and retrievers
+- `selfrag/graph.py` – LangGraph workflow definition
+- `nodes/` – Modular steps for each node in the agent loop
 
 ---
 
-## API Usage
+## Quick Start
 
-A FastAPI service is available to trigger the SelfRAG agent via HTTP.
+1. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   # (Or use poetry with pyproject.toml)
+   ```
 
-### Run the API server
+2. **Set up Ollama (local LLM):**
+   ```bash
+   export OLLAMA_HOST=http://localhost:11434
+   # Adjust if your Ollama instance runs elsewhere
+   ```
 
+3. **Run the CLI demo:**
+   ```bash
+   python examples/demo_cli.py
+   ```
+
+---
+
+## Running as an API Microservice
+
+Start the FastAPI server:
 ```bash
 uvicorn api:app --reload
 ```
 
-### Call the /trigger endpoint with curl
-
+Trigger the agent via HTTP:
 ```bash
 curl -X POST \
   -H "Content-Type: application/json" \
@@ -77,11 +78,40 @@ curl -X POST \
   http://localhost:8000/trigger
 ```
 
-**Response:**
+**Sample response:**
 ```json
 {
   "answer": "Christopher Nolan"
 }
 ```
 
-See `selfrag/graph.py` for the workflow definition and the `nodes/` package for each individual step. 
+---
+
+## Customization
+
+- **Change the language model:** Edit the model name in `selfrag/config.py`.
+- **Swap out the retriever:** Replace or extend the `DfEmbedder` logic.
+- **Modify the workflow:** Adjust the LangGraph definition in `selfrag/graph.py` or add new nodes in `nodes/`.
+
+---
+
+## Why Use This Pattern?
+
+- **Autonomy:** The agent can reason, self-correct, and adapt its answers.
+- **Modularity:** Each step is a node, making it easy to extend or swap components.
+- **Production-ready:** Exposes a simple API endpoint for integration into larger systems.
+
+---
+
+## References
+
+- [LangGraph](https://github.com/langchain-ai/langgraph)
+- [LangChain](https://github.com/langchain-ai/langchain)
+- [Ollama](https://ollama.com/)
+- [DfEmbedder](https://github.com/dfembed/dfembed) (custom vector DB)
+
+---
+
+## License
+
+MIT 

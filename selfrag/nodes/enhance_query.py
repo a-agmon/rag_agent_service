@@ -22,6 +22,8 @@ _PROMPT = ChatPromptTemplate.from_messages(
     ]
 )
 
+node_name = "enhance_query"
+
 def enhance(state: SessionState) -> SessionState:
     """Rewrite the query and store it in state.enhanced_query."""
     logging.info(f"[EnhanceQuery] Enhancing query: {state.query}")

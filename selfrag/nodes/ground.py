@@ -7,6 +7,8 @@ from selfrag.state import SessionState
 from selfrag.utils import remove_think_blocks
 import logging
 
+node_name = "ground"
+
 _judge = get_llm(temperature=0)  # deterministic grading
 
 _RUBRIC = ChatPromptTemplate.from_messages(

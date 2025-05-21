@@ -7,6 +7,8 @@ from selfrag.state import SessionState
 from selfrag.utils import remove_think_blocks
 import logging
 
+node_name = "generate"
+
 _llm = get_llm()
 
 _PROMPT = ChatPromptTemplate.from_messages(
@@ -29,7 +31,6 @@ def generate(state: SessionState) -> SessionState:
     resp = _llm.invoke(
         _PROMPT.format(question=state.query, context=context)  # type: ignore[arg-type]
     )
-    answer = remove_think_blocks(resp.content.strip())
-    state.answer = resp.content.strip()
+    state.answer = remove_think_blocks(resp.content.strip())
     logging.info(f"[Generate] Generated answer: {state.answer}")
     return state 

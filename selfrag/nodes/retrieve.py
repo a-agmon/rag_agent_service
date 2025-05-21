@@ -5,6 +5,8 @@ from selfrag.config import get_retriever
 from selfrag.state import SessionState
 import logging
 
+node_name = "retrieve"
+
 _retriever = get_retriever()
 
 
